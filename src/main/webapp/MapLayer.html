@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Map</title>
+
+    <script src="js/ol/dist/ol.js"></script>
+    <script>
+        function hidddenByClassName(className) {
+            var element = document.getElementsByClassName(className);
+            for (var i = 0; i < element.length; i += 1) {
+                element[i].style.display = "none";
+            }
+        }
+        function showByClassName(className) {
+            var element = document.getElementsByClassName(className);
+            for (var i = 0; i < element.length; i += 1) {
+                element[i].style.display = "block";
+            }
+        }
+
+        function MeasureShow() {
+            showByClassName("input-card");
+            showByClassName("measureTools");
+        }
+        function MeasureHide() {
+            showByClassName("input-card");
+            showByClassName("drawTools");
+        }
+    </script>
+
+    <link rel="stylesheet" href="js/ol/ol.css" type="text/css">
+    <style>
+        .ol-popup {
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            font-family: Arial, sans-serif;
+        }
+        .ol-popup-closer {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            color: #8d1313;
+            text-decoration: none;
+        }
+        form {
+            margin: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"] {
+            width: 200px;
+            margin-bottom: 10px;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        #map {
+            width: 100%;
+            height: 600px;
+        }
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f8f9fa;
+    }
+
+    .header {
+        background-image: url('images/placeholder.jpg');
+        background-size: cover;
+        color: #fff;
+        text-align: center;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .container {
+        display: flex;
+        justify-content: center;
+    }
+
+    .form-container {
+        flex: 1;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .map-container {
+        flex: 2;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    form {
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+    }
+
+    input[type="submit"] {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+
+    input[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+
+</style>
+</head>
+
+<body>
+<div id="container"></div>
+<h3 id="title">Google Map Services
+</h3>
+
+<label for="x1">影像X1坐标：</label>
+<input type="text" id="x1" name="x1" placeholder="左上角X坐标" value="110.8345003">
+<label for="y1">影像Y1坐标： </label>
+<input type="text" id="y1" name="y1" placeholder="左上角Y坐标" value="33.2214611">
+
+<label for="x2">影像X2坐标：</label>
+<input type="text" id="x2" name="x2" placeholder="右下角X坐标" value="111.2830903">
+
+<label for="y2">影像Y2坐标：</label>
+<input type="text" id="y2" name="y2" placeholder="右下角Y坐标" value="33.0325156">
+
+<button id="submit" onclick = "submitData()">提交</button>
+
+<div id="map"></div>
+<div id="popup" class="ol-popup">
+    <a href="#" id="popup-closer" class="ol-popup-closer" title="close"></a>
+    <div id="popup-content"></div>
+</div>
+
+<script>
+    let map;
+    let view = new ol.View({
+        projection: 'EPSG:4326'
+    })
+    window.onload = function () {
+        map = new ol.Map({
+            layers: [
+                new ol.layer.Tile({
+                    source: new ol.source.XYZ({
+                        url: 'raster?R={y}&C={x}&L={z}'
+                    })
+                })
+            ],
+            target: document.getElementById('map'),
+            view: view
+        })
+    }
+
+    function resolution(zoom) {
+        return (360.0) / (256 * Math.pow(2, zoom));
+    }
+
+    function zoomForPixelSize(pixelSize) {
+        for (let i = 0; i < 32; ++i) {
+            if (pixelSize > resolution(i))
+                return i - 1;
+        }
+        return 0;
+    }
+
+    function submitData() {
+        const x1 = Number(document.getElementById('x1').value);
+        const y1 = Number(document.getElementById('y1').value);
+        const x2 = Number(document.getElementById('x2').value);
+        const y2 = Number(document.getElementById('y2').value);
+        let extent = [x1, y1, x2, y2];
+        let zoomLevel = zoomForPixelSize(Math.max(x2 - x1, y1 - y2) / 256.0);
+        let center = ol.extent.getCenter(extent)
+        map.getView().setCenter(center);
+        map.getView().setZoom(zoomLevel);
+        //map.setView(view);
+
+        url = "vector?x1=" + x1 + "&x2=" + x2 + "&y1=" + y2 + "&y2=" + y1;
+        fetch(url).then(function(response) {
+            if (!response.ok)
+                throw new Error("Error");
+            return response.json();
+        }).then(function(vectorJSON) {
+            var vectorLayer = new ol.layer.Vector({
+                source: new ol.source.Vector({
+                    features: (new ol.format.GeoJSON()).readFeatures(vectorJSON, {
+                        featureProjection: 'EPSG:4326'
+                    })
+                })
+            });
+            map.addLayer(vectorLayer);
+            var select = new ol.interaction.Select();
+            map.addInteraction(select);
+
+
+            var container = document.getElementById('popup');
+            var content = document.getElementById('popup-content');
+            var closer = document.getElementById('popup-closer');
+            // 创建popup
+            var popup = new ol.Overlay({
+                element: container,
+                autoPan: true,
+                positioning: 'bottom-center',
+                stopEvent: false,
+                autoPanAnimation: {
+                    duration: 250
+                }
+            });
+            map.addOverlay(popup);
+
+            closer.onclick = function () {
+                popup.setPosition(undefined);
+                closer.blur();
+                return false;
+            };
+            // 监听鼠标单击事件，点击feature后弹出popup
+            map.on('click', function (e) {
+                var coordinate = e.coordinate;
+                var feature = map.forEachFeatureAtPixel(e.pixel, function (feature, layer) {
+                    return feature;
+                });
+                if (feature) {
+                    // 清空html
+                    content.innerHTML = '';
+                    var properties = feature.getProperties();
+                    // 创建并填充要素属性信息
+                    for (var key in properties) {
+                        if (properties.hasOwnProperty(key) && key !== 'geometry') {
+                            var propertyElement = document.createElement('p');
+                            propertyElement.innerText = key + ': ' + properties[key];
+                            if (properties[key] !== '')
+                                content.appendChild(propertyElement);
+                        }
+                    }
+                    // 弹出popup
+                    popup.setPosition(coordinate);
+                }
+            });
+
+            // 监听鼠标移动事件，鼠标移动到feature区域时变为手形
+            map.on('pointermove', function (e) {
+                var pixel = map.getEventPixel(e.originalEvent);
+                var hit = map.hasFeatureAtPixel(pixel);
+                map.getTargetElement().style.cursor = hit ? 'pointer' : '';
+            });
+
+        })
+    }
+
+</script>
+</body>
+
+</html>
