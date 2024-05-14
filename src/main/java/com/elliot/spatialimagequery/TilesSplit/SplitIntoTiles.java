@@ -1,5 +1,7 @@
-package com.elliot.spatialimagequery;
+package com.elliot.spatialimagequery.TilesSplit;
 
+import com.elliot.spatialimagequery.Const;
+import com.elliot.spatialimagequery.ImageDB;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -22,12 +24,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import static com.elliot.spatialimagequery.TilesTransform.*;
+import static com.elliot.spatialimagequery.TilesSplit.TilesTransform.*;
 
 public class SplitIntoTiles{
     FileSystem fs;
     public SplitIntoTiles() throws IOException {
-        String hdfsUri = "hdfs://server:8020";
+        String hdfsUri = Const.hdfsUri;
         Configuration conf = new Configuration();
         conf.set("fs.defaultFS", hdfsUri);
         fs = FileSystem.get(conf);

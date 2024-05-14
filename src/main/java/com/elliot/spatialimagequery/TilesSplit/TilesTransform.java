@@ -1,4 +1,4 @@
-package com.elliot.spatialimagequery;
+package com.elliot.spatialimagequery.TilesSplit;
 
 public class TilesTransform {
     public static int lon2tile(double lon, int zoom) {

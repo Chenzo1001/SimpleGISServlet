@@ -1,5 +1,6 @@
-package com.elliot.spatialimagequery;
+package com.elliot.spatialimagequery.TilesSplit;
 
+import com.elliot.spatialimagequery.Const;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;

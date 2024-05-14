@@ -16,7 +16,7 @@ import com.mongodb.client.MongoDatabase;
 
 @WebServlet(name = "VectorServlet", value = "/vector")
 public class OutputVector extends HttpServlet {
-    private static final String DATABASE_NAME = "CanyuChen";
+    private static final String DATABASE_NAME = "test";
     private static final String COLLECTION_NAME = "China";
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
